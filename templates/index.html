@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DynamicPriceX - Price Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand"><i class="fas fa-tags"></i> DynamicPriceX</div>
+        <div class="nav-links">
+            <a href="/" class="active"><i class="fas fa-calculator"></i> Predict</a>
+            <a href="/dashboard"><i class="fas fa-chart-bar"></i> Dashboard</a>
+            <a href="/history"><i class="fas fa-history"></i> History</a>
+            <div class="nav-user">
+                <span><i class="fas fa-user-circle"></i> {{ current_user.full_name or current_user.username }}</span>
+                <a href="/logout" class="btn-nav-logout"><i class="fas fa-sign-out-alt"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for cat, msg in messages %}
+        <div class="flash-msg flash-{{ cat }}">{{ msg }}
+            <button onclick="this.parentElement.remove()" class="flash-close">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="predict-wrapper">
+        <div class="predict-container">
+            <div class="predict-header">
+                <h1>DynamicPriceX - Price Predictor</h1>
+                <p>Professional Price Optimization Engine</p>
+                {% if metrics %}
+                <div class="model-badge">
+                    Model: {{ metrics.model_name }} | R²: {{ metrics.r2 }} | Predictions: {{ total_predictions }}
+                </div>
+                {% endif %}
+            </div>
+
+            {% if model_ready %}
+            <form id="predict-form" onsubmit="return false;">
+
+                <!-- Section 1: Product Information -->
+                <div class="form-section">
+                    <h3><i class="fas fa-box"></i> Product Information</h3>
+                    <div class="form-grid-2">
+                        <div class="field">
+                            <label>Product Category</label>
+                            <select id="product_category">
+                                <option value="Electronics">Electronics</option>
+                                <option value="Clothing">Clothing</option>
+                                <option value="Home">Home</option>
+                                <option value="Beauty">Beauty</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Brand</label>
+                            <select id="brand">
+                                <option value="BrandA">BrandA</option>
+                                <option value="BrandB">BrandB</option>
+                                <option value="BrandC">BrandC</option>
+                                <option value="BrandD">BrandD</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Pricing -->
+                <div class="form-section">
+                    <h3><i class="fas fa-rupee-sign"></i> Pricing Details</h3>
+                    <div class="form-grid-3">
+                        <div class="field">
+                            <label>Base Price (₹)</label>
+                            <input type="number" id="base_price" placeholder="500" value="500" step="0.01">
+                        </div>
+                        <div class="field">
+                            <label>Competitor Price (₹)</label>
+                            <input type="number" id="competitor_price" placeholder="480" value="480" step="0.01">
+                        </div>
+                        <div class="field">
+                            <label>Cost Price (₹)</label>
+                            <input type="number" id="cost_price" placeholder="350" value="350" step="0.01">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Sales & Inventory -->
+                <div class="form-section">
+                    <h3><i class="fas fa-warehouse"></i> Sales & Inventory</h3>
+                    <div class="form-grid-3">
+                        <div class="field">
+                            <label>Stock Quantity</label>
+                            <input type="number" id="stock_quantity" placeholder="250" value="250">
+                        </div>
+                        <div class="field">
+                            <label>Daily Views</label>
+                            <input type="number" id="daily_views" placeholder="2000" value="2000">
+                        </div>
+                        <div class="field">
+                            <label>Daily Sales</label>
+                            <input type="number" id="daily_sales" placeholder="100" value="100">
+                        </div>
+                    </div>
+                    <div class="form-grid-3">
+                        <div class="field">
+                            <label>Add to Cart Count</label>
+                            <input type="number" id="add_to_cart_count" placeholder="150" value="150">
+                        </div>
+                        <div class="field">
+                            <label>Customer Rating (1-5)</label>
+                            <input type="number" id="customer_rating" placeholder="4.0" value="4.0" step="0.01" min="1" max="5">
+                        </div>
+                        <div class="field">
+                            <label>Review Count</label>
+                            <input type="number" id="review_count" placeholder="200" value="200">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Marketing & Promotions -->
+                <div class="form-section">
+                    <h3><i class="fas fa-bullhorn"></i> Marketing & Promotions</h3>
+                    <div class="form-grid-3">
+                        <div class="field">
+                            <label>Discount Percentage (%)</label>
+                            <input type="number" id="discount_percentage" placeholder="25" value="25" min="0" max="50">
+                        </div>
+                        <div class="field">
+                            <label>Advertising Spend (₹)</label>
+                            <input type="number" id="advertising_spend" placeholder="2500" value="2500" step="0.01">
+                        </div>
+                        <div class="field">
+                            <label>Promotion Type</label>
+                            <select id="promotion_type">
+                                <option value="Sale">Sale</option>
+                                <option value="Festival" selected>Festival</option>
+                                <option value="Clearance">Clearance</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 5: Time & Demand -->
+                <div class="form-section">
+                    <h3><i class="fas fa-clock"></i> Time & Demand Factors</h3>
+                    <div class="form-grid-2">
+                        <div class="field">
+                            <label>Day of Week</label>
+                            <select id="day_of_week">
+                                <option value="0">Monday (0)</option>
+                                <option value="1">Tuesday (1)</option>
+                                <option value="2">Wednesday (2)</option>
+                                <option value="3" selected>Thursday (3)</option>
+                                <option value="4">Friday (4)</option>
+                                <option value="5">Saturday (5)</option>
+                                <option value="6">Sunday (6)</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Season</label>
+                            <select id="season">
+                                <option value="Summer" selected>Summer</option>
+                                <option value="Winter">Winter</option>
+                                <option value="Monsoon">Monsoon</option>
+                                <option value="Festival">Festival</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-grid-2">
+                        <div class="field">
+                            <label>Demand Index (1-10)</label>
+                            <input type="number" id="demand_index" placeholder="5" value="5" min="1" max="10">
+                        </div>
+                        <div class="field">
+                            <label>Price Elasticity (0.1-2.0)</label>
+                            <input type="number" id="price_elasticity" placeholder="1.0" value="1.0" step="0.01" min="0.1" max="2.0">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-predict" onclick="predictPrice()">
+                    <i class="fas fa-calculator"></i> Predict Dynamic Price
+                </button>
+            </form>
+
+            <!-- Result -->
+            <div id="result-section" class="hidden">
+                <div class="result-card">
+                    <div class="result-row">
+                        <div class="result-item">
+                            <span class="result-label">Base Price</span>
+                            <span class="result-value" id="res-base">₹0</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Cost Price</span>
+                            <span class="result-value" id="res-cost">₹0</span>
+                        </div>
+                        <div class="result-item highlight">
+                            <span class="result-label">Predicted Final Price</span>
+                            <span class="result-value big" id="res-predicted">₹0</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Profit Margin</span>
+                            <span class="result-value" id="res-margin">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loading" class="hidden">
+                <div class="loader"></div>
+                <p>Calculating optimal price...</p>
+            </div>
+
+            {% else %}
+            <div class="no-model">
+                <i class="fas fa-exclamation-triangle fa-3x"></i>
+                <h2>Model Not Trained Yet</h2>
+                <p>Run this command first:</p>
+                <code>python train_model.py</code>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

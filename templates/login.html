@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - DynamicPriceX</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for cat, msg in messages %}
+        <div class="flash-msg flash-{{ cat }}">
+            {{ msg }}
+            <button onclick="this.parentElement.remove()" class="flash-close">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <i class="fas fa-tags"></i>
+                </div>
+                <h1>DynamicPriceX</h1>
+                <p class="auth-subtitle">Price Optimization Engine</p>
+            </div>
+
+            <form method="POST" class="auth-form">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" name="username" placeholder="Username or Email" required autofocus>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" id="pw" placeholder="Password" required>
+                    <button type="button" class="eye-btn" onclick="togglePw()">
+                        <i class="fas fa-eye" id="eye"></i>
+                    </button>
+                </div>
+                <label class="remember">
+                    <input type="checkbox" name="remember"> Remember me
+                </label>
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                Don't have an account? <a href="/register">Create Account</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function togglePw() {
+        const p = document.getElementById('pw');
+        const e = document.getElementById('eye');
+        if(p.type==='password'){p.type='text';e.className='fas fa-eye-slash';}
+        else{p.type='password';e.className='fas fa-eye';}
+    }
+    </script>
+</body>
+</html>

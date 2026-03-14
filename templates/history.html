@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History - DynamicPriceX</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand"><i class="fas fa-tags"></i> DynamicPriceX</div>
+        <div class="nav-links">
+            <a href="/"><i class="fas fa-calculator"></i> Predict</a>
+            <a href="/dashboard"><i class="fas fa-chart-bar"></i> Dashboard</a>
+            <a href="/history" class="active"><i class="fas fa-history"></i> History</a>
+            <div class="nav-user">
+                <span><i class="fas fa-user-circle"></i> {{ current_user.full_name or current_user.username }}</span>
+                <a href="/logout" class="btn-nav-logout"><i class="fas fa-sign-out-alt"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="page-title"><i class="fas fa-history"></i> Prediction History</h1>
+
+        {% if predictions %}
+        <div class="detail-card full-width">
+            <p class="subtitle">Total: {{ predictions|length }} predictions</p>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th><th>Date</th><th>Category</th><th>Brand</th>
+                            <th>Base ₹</th><th>Competitor ₹</th><th>Cost ₹</th>
+                            <th>Stock</th><th>Discount%</th><th>Promo</th>
+                            <th>Season</th><th>Demand</th>
+                            <th>Predicted ₹</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in predictions %}
+                        <tr>
+                            <td>{{ p.id }}</td>
+                            <td>{{ p.created_at.strftime('%m/%d %H:%M') }}</td>
+                            <td>{{ p.product_category }}</td>
+                            <td>{{ p.brand }}</td>
+                            <td>₹{{ "%.0f"|format(p.base_price) }}</td>
+                            <td>₹{{ "%.0f"|format(p.competitor_price) }}</td>
+                            <td>₹{{ "%.0f"|format(p.cost_price) }}</td>
+                            <td>{{ p.stock_quantity }}</td>
+                            <td>{{ p.discount_percentage }}%</td>
+                            <td>{{ p.promotion_type }}</td>
+                            <td>{{ p.season }}</td>
+                            <td>{{ p.demand_index }}</td>
+                            <td class="price-col"><strong>₹{{ "%.2f"|format(p.predicted_price) }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="no-model">
+            <i class="fas fa-inbox fa-3x"></i>
+            <h2>No Predictions Yet</h2>
+            <p>Go to <a href="/">Predict</a> to make your first prediction.</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

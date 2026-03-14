@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict Price - Dynamic Pricing</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-chart-line"></i> Dynamic Pricing Engine
+        </div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/train">Train Model</a>
+            <a href="/predict" class="active">Predict</a>
+            <a href="/dashboard">Dashboard</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h1><i class="fas fa-dollar-sign"></i> Price Prediction</h1>
+
+        {% if model_info %}
+        <!-- Single Prediction -->
+        <section class="section-card">
+            <h2>Single Prediction</h2>
+            <p class="subtitle">Model: <strong>{{ model_info.model_name }}</strong> |
+               R²: <strong>{{ model_info.test_metrics.r2 }}</strong> |
+               Features: <strong>{{ model_info.num_features }}</strong></p>
+
+            <form id="predict-form" class="form-grid">
+                {% for col in model_info.feature_columns %}
+                <div class="form-group">
+                    <label>{{ col }}</label>
+                    <input type="text" name="{{ col }}" placeholder="Enter {{ col }}" required>
+                </div>
+                {% endfor %}
+            </form>
+            <button class="btn btn-primary" onclick="predictSingle()">
+                <i class="fas fa-calculator"></i> Predict Price
+            </button>
+
+            <div id="prediction-result" class="hidden">
+                <div class="price-display">
+                    <span class="label">Predicted Price</span>
+                    <span class="price" id="predicted-price"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Batch Prediction -->
+        <section class="section-card">
+            <h2>Batch Prediction</h2>
+            <p class="subtitle">Upload a CSV with the same feature columns to get bulk predictions.</p>
+            <input type="file" id="batch-file" accept=".csv,.xlsx">
+            <button class="btn btn-secondary" onclick="predictBatch()">
+                <i class="fas fa-upload"></i> Upload & Predict
+            </button>
+            <div id="batch-result" class="hidden">
+                <div class="stats-row" id="batch-stats"></div>
+                <a href="/api/download-predictions" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Download Results
+                </a>
+                <div class="table-container">
+                    <table id="batch-table">
+                        <thead id="batch-thead"></thead>
+                        <tbody id="batch-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        {% else %}
+        <section class="section-card">
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle fa-3x"></i>
+                <h2>No Trained Model Found</h2>
+                <p>Please train a model first before making predictions.</p>
+                <a href="/train" class="btn btn-primary">Go to Training</a>
+            </div>
+        </section>
+        {% endif %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

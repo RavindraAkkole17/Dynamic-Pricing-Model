@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - DynamicPriceX</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand"><i class="fas fa-tags"></i> DynamicPriceX</div>
+        <div class="nav-links">
+            <a href="/"><i class="fas fa-calculator"></i> Predict</a>
+            <a href="/dashboard" class="active"><i class="fas fa-chart-bar"></i> Dashboard</a>
+            <a href="/history"><i class="fas fa-history"></i> History</a>
+            <div class="nav-user">
+                <span><i class="fas fa-user-circle"></i> {{ current_user.full_name or current_user.username }}</span>
+                <a href="/logout" class="btn-nav-logout"><i class="fas fa-sign-out-alt"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="page-title"><i class="fas fa-tachometer-alt"></i> Model Dashboard</h1>
+
+        {% if metrics %}
+        <div class="stats-grid">
+            <div class="stat-card purple">
+                <i class="fas fa-brain"></i>
+                <div class="stat-info">
+                    <span class="stat-num">{{ metrics.model_name }}</span>
+                    <span class="stat-label">Active Model</span>
+                </div>
+            </div>
+            <div class="stat-card green">
+                <i class="fas fa-bullseye"></i>
+                <div class="stat-info">
+                    <span class="stat-num">{{ metrics.r2 }}</span>
+                    <span class="stat-label">R² Score</span>
+                </div>
+            </div>
+            <div class="stat-card blue">
+                <i class="fas fa-calculator"></i>
+                <div class="stat-info">
+                    <span class="stat-num">{{ total_predictions }}</span>
+                    <span class="stat-label">Total Predictions</span>
+                </div>
+            </div>
+            <div class="stat-card orange">
+                <i class="fas fa-percentage"></i>
+                <div class="stat-info">
+                    <span class="stat-num">{{ metrics.mape }}%</span>
+                    <span class="stat-label">MAPE</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-grid">
+            <div class="detail-card">
+                <h3>Model Performance</h3>
+                <table class="detail-table">
+                    <tr><td>Model</td><td><strong>{{ metrics.model_name }}</strong></td></tr>
+                    <tr><td>R² Score</td><td>{{ metrics.r2 }}</td></tr>
+                    <tr><td>MAE</td><td>{{ metrics.mae }}</td></tr>
+                    <tr><td>RMSE</td><td>{{ metrics.rmse }}</td></tr>
+                    <tr><td>MAPE</td><td>{{ metrics.mape }}%</td></tr>
+                    <tr><td>Training Samples</td><td>{{ metrics.num_samples }}</td></tr>
+                    <tr><td>Features Used</td><td>{{ metrics.num_features }}</td></tr>
+                </table>
+            </div>
+            <div class="detail-card">
+                <h3>Feature Importance</h3>
+                {% if metrics.feature_importance %}
+                <div class="importance-bars">
+                    {% for feat, imp in metrics.feature_importance.items() %}
+                    {% if loop.index <= 10 %}
+                    <div class="imp-row">
+                        <span class="imp-name">{{ feat }}</span>
+                        <div class="imp-bar-bg">
+                            <div class="imp-bar" style="width: {{ (imp / metrics.feature_importance.values()|list|first * 100)|round }}%"></div>
+                        </div>
+                        <span class="imp-val">{{ "%.3f"|format(imp) }}</span>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if recent_predictions %}
+        <div class="detail-card full-width">
+            <h3>Recent Predictions</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th><th>Product</th><th>Category</th>
+                        <th>Base Price</th><th>Predicted Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in recent_predictions %}
+                    <tr>
+                        <td>{{ p.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ p.product_name }}</td>
+                        <td>{{ p.product_category }}</td>
+                        <td>₹{{ "%.2f"|format(p.base_price) }}</td>
+                        <td class="price-col">₹{{ "%.2f"|format(p.predicted_price) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="no-model">
+            <i class="fas fa-chart-pie fa-3x"></i>
+            <h2>No Model Data</h2>
+            <p>Run <code>python train_model.py</code> first.</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
